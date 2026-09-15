@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GenAMR interactive qualitative demo">
+  <title>GenAMR · Interactive Demo</title>
+  <style>
+    :root { --bg:#08111f; --panel:#101d31; --panel2:#142640; --text:#e8f0fb; --muted:#91a4bf; --line:#263a56; --cyan:#65d9ed; --orange:#ffb86b; --pink:#f28ab2; --green:#82e0a1; }
+    * { box-sizing:border-box; } body { margin:0; color:var(--text); background:radial-gradient(circle at 80% 0,#18385a 0,transparent 40%),var(--bg); font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif; }
+    .wrap { max-width:1120px; margin:auto; padding:32px 22px 52px; } header { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:28px; }
+    .eyebrow { color:var(--cyan); letter-spacing:.14em; text-transform:uppercase; font-size:12px; font-weight:700; } h1 { margin:5px 0 8px; font-size:clamp(30px,5vw,52px); letter-spacing:-.045em; line-height:1.05; } h2 { margin:0 0 8px; font-size:18px; } p { color:var(--muted); margin:0; } .intro { max-width:680px; }
+    .badge { border:1px solid #355171; border-radius:999px; color:#b9cbe2; padding:7px 12px; white-space:nowrap; font-size:12px; }
+    .grid { display:grid; grid-template-columns:280px 1fr; gap:18px; } .card { background:linear-gradient(145deg,rgba(20,38,64,.95),rgba(11,23,40,.96)); border:1px solid var(--line); border-radius:16px; padding:18px; box-shadow:0 16px 40px #02081155; }
+    .cases { display:grid; gap:9px; } button { font:inherit; cursor:pointer; color:inherit; } .case { width:100%; text-align:left; background:transparent; border:1px solid transparent; border-radius:11px; padding:12px; } .case:hover { background:#ffffff08; } .case.active { background:#163554; border-color:#37617e; } .case strong { display:block; font-size:13px; } .case span { display:block; color:var(--muted); font-size:12px; margin-top:3px; }
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px; } select { background:#0b192d; color:var(--text); border:1px solid #385270; border-radius:8px; padding:8px 10px; }
+    .query { font-size:20px; line-height:1.3; margin:4px 0 5px; } .meta { color:var(--muted); font-size:13px; }
+    .timeline { margin-top:24px; } .scale { display:flex; justify-content:space-between; color:var(--muted); font-size:11px; margin:0 0 6px 114px; } .row { display:grid; grid-template-columns:104px 1fr; gap:10px; align-items:center; margin:12px 0; } .label { font-size:12px; color:#c8d5e5; } .track { height:38px; border-radius:8px; border:1px solid #29415f; background:repeating-linear-gradient(90deg,#0e1c30 0,#0e1c30 calc(10% - 1px),#1c304a 10%); position:relative; overflow:hidden; } .segment { position:absolute; top:5px; height:26px; min-width:2px; border-radius:5px; opacity:.9; box-shadow:0 0 14px #0008; } .gt { background:var(--green); } .gen { background:var(--cyan); } .time { background:var(--orange); } .uv { background:var(--pink); }
+    .legend { display:flex; gap:15px; flex-wrap:wrap; color:var(--muted); font-size:12px; margin:18px 0 0 114px; } .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; } .metric-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px; } .metric { background:#0a1729; padding:12px; border-radius:10px; } .metric b { font-size:21px; display:block; } .metric span { color:var(--muted); font-size:11px; } .note { margin-top:16px; padding:11px 13px; border-left:2px solid var(--cyan); background:#65d9ed0d; font-size:12px; color:#b4c5d9; }
+    footer { color:#6f829c; font-size:12px; margin-top:24px; } a { color:var(--cyan); }
+    @media(max-width:760px){ header{display:block}.badge{display:inline-block;margin-top:14px}.grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:repeat(3,1fr)} .row{grid-template-columns:72px 1fr}.scale,.legend{margin-left:82px} }
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header><div class="intro"><div class="eyebrow">GenAMR · ICASSP 2027</div><h1>Query-conditioned audio moment retrieval</h1><p>Explore how generated timestamp spans align with query-relevant events in long, untrimmed recordings.</p></div><div class="badge">qualitative demo · CASTELLA test cases</div></header>
+  <section class="grid">
+    <aside class="card"><h2>Examples</h2><p style="font-size:12px;margin-bottom:12px">Select a query to compare predictions.</p><div id="cases" class="cases"></div><div class="note">This lightweight demo ships precomputed qualitative outputs. It does not download checkpoints or claim live inference.</div></aside>
+    <article class="card"><div class="toolbar"><div><div class="eyebrow">Selected query</div><div id="query" class="query"></div><div id="meta" class="meta"></div></div><label class="meta">Show <select id="method"><option value="all">all methods</option><option value="gen">GenAMR</option><option value="time">TimeAudio</option><option value="uv">UVCom</option><option value="gt">ground truth</option></select></label></div>
+      <div class="timeline"><div class="scale" id="scale"></div><div id="rows"></div><div class="legend"><span><i class="dot gt"></i>ground truth</span><span><i class="dot gen"></i>GenAMR</span><span><i class="dot time"></i>TimeAudio</span><span><i class="dot uv"></i>UVCom</span></div></div>
+      <div class="metric-grid"><div class="metric"><b id="bestGen">—</b><span>GenAMR best IoU</span></div><div class="metric"><b id="bestBase">—</b><span>best baseline IoU</span></div><div class="metric"><b id="gain">—</b><span>IoU gain</span></div></div>
+      <div id="explain" class="note"></div>
+    </article>
+  </section>
+  <footer>Numbers are transcribed from <a href="../genamr_qualitative_cases.md">genamr_qualitative_cases.md</a>. For the paper, see <a href="../main.tex">main.tex</a>.</footer>
+</main>
+<script>
+const DATA=[
+ {id:'1Og2TJ3bXW0_4',q:'Someone sneezes amid background noise',d:300,gt:[[129,131],[224,225],[134,135]],gen:[[224,225,.4514]],time:[[130,135,.7781]],uv:[[130,134,.4349]],why:'GenAMR retrieves the short sneeze event at 224–225 s, while both baselines rank a nearby but incorrect region first.'},
+ {id:'hGWarNR6xmg_1',q:'Amid the commotion, an engine rumbles',d:230,gt:[[43,47],[158,162],[176,181],[188,192],[197,204],[216,220],[226,230]],gen:[[197,204,.5430]],time:[[19,53,.8043]],uv:[[191,216,.0406]],why:'The generated span matches one of the repeated engine events exactly; the baselines produce much broader or shifted intervals.'},
+ {id:'IsUG5SKWNZA_2',q:'A child laughs while talking',d:134,gt:[[132,134]],gen:[[132,134,.6006]],time:[[72,74,.8223]],uv:[[70,72,.5902]],why:'GenAMR places the timestamp at the end of the recording, where the annotated child-laughter event occurs.'},
+ {id:'maVYiednkSg_4',q:'Machinery produces rhythmic scraping and vibration sounds',d:143,gt:[[129,141]],gen:[[130,141,.6321]],time:[[50,52,.7658]],uv:[[90,127,.7879]],why:'GenAMR follows the long machinery segment and its endpoint; the baselines miss the relevant acoustic region.'}
+];
+let current=0; const $=id=>document.getElementById(id); const names={gt:'Ground truth',gen:'GenAMR',time:'TimeAudio',uv:'UVCom'}; const cls={gt:'gt',gen:'gen',time:'time',uv:'uv'};
+function iou(a,b){const x=Math.max(a[0],b[0]),y=Math.min(a[1],b[1]);return Math.max(0,y-x)/((a[1]-a[0])+(b[1]-b[0])-Math.max(0,y-x));} function bestIoU(spans,gt){return Math.max(...spans.flatMap(s=>gt.map(g=>iou(s,g))),0)}
+function render(){const x=DATA[current], chosen=$('method').value; $('query').textContent=x.q; $('meta').textContent=`${x.id} · ${x.d} s recording · ${x.gt.length} annotated window${x.gt.length>1?'s':''}`; $('scale').innerHTML=[0,.25,.5,.75,1].map(v=>`<span>${Math.round(v*x.d)} s</span>`).join(''); const keys=chosen==='all'?['gt','gen','time','uv']:[chosen]; $('rows').innerHTML=keys.map(k=>`<div class="row"><div class="label">${names[k]}</div><div class="track">${x[k].map(s=>`<span class="segment ${cls[k]}" title="${s[0]}–${s[1]} s${s[2]?' · score '+s[2].toFixed(3):''}" style="left:${s[0]/x.d*100}%;width:${(s[1]-s[0])/x.d*100}%"></span>`).join('')}</div></div>`).join(''); const g=bestIoU(x.gen,x.gt), b=Math.max(bestIoU(x.time,x.gt),bestIoU(x.uv,x.gt)); $('bestGen').textContent=g.toFixed(3); $('bestBase').textContent=b.toFixed(3); $('gain').textContent=(g-b>=0?'+':'')+(g-b).toFixed(3); $('explain').textContent=x.why; document.querySelectorAll('.case').forEach((el,i)=>el.classList.toggle('active',i===current)); }
+DATA.forEach((x,i)=>{const b=document.createElement('button');b.className='case';b.innerHTML=`<strong>Case ${i+1}</strong><span>${x.q}</span>`;b.onclick=()=>{current=i;render()};$('cases').appendChild(b)}); $('method').onchange=render; render();
+</script>
+</body>
+</html>
